@@ -83,14 +83,26 @@ class NeuralNetwork:
 		print("\n--Training Complete--")
 		print(f"Total Training Time: {mins} minutes and {sec} seconds\n")
 
+	def save_weights(self, filename="trained_weights_biases.npz"):
+		np.savez(filename, W1=self.W1, b1=self.b1, W2=self.W2, b2=self.b2)
+		print(f"\n[SUCCESS] Trained Model Saved in {filename}")
+
+	def load_weights(self, filename="trained_weights_biases.npz"):
+		with np.load(filename) as data:
+			self.W1 = data['W1']
+			self.b1 = data['b1']
+			self.W2 = data['W2']
+			self.b2 = data['b2']
+		print(f"\nNeural Network Loaded from {filename}")
+
 def predict_drawing(image):
 	if image is None or image["composite"] is None:
-	 	return {str(i+65): 0.0 for i in range(26)} 
+	 	return {chr(i+65): 0.0 for i in range(26)} 
 
 	img_array = image["composite"]
 
 	if np.max(img_array) == 0:
-		return {str(i+65): 0.1 for i in range(26)}
+		return {chr(i+65): 0.1 for i in range(26)}
 
 	gray = cv2.cvtColor(img_array, cv2.COLOR_RGBA2GRAY)
 
@@ -142,7 +154,7 @@ def predict_drawing(image):
 
 	prediction = nn.forward_pass(flattened)
 
-	return {str(i): float(prediction[0][i]) for i in range(10)}
+	return {chr(i): float(prediction[0][i]) for i in range(10)}
 
 interface = gr.Interface(fn=predict_drawing, inputs=gr.Sketchpad(type="numpy", label="Draw an UPPERCASE letter (A-Z) in the center of the box!"), outputs=gr.Label(num_top_classes=3, label="The AI's Guess"), title="Letter Guessing NN", description="Draw an UPPERCASE letter (A-Z) in the center of the box!", live=True)
 
@@ -189,8 +201,12 @@ if __name__ == "__main__":
 
 	nn = NeuralNetwork(input_nodes=784, hidden_nodes=512, output_nodes=26)
 
-	print(f"Starting Training on {len(X_train)} images.... ")
-	nn.train(X_train, y_train, epochs=2500, learning_rate=0.45)
+	if os.path.exists("trained_weights_biases.npz"):
+		nn.load_weights("trained_weights_biases.npz")
+	else:
+		print(f"Starting Training on {len(X_train)} images.... ")
+		nn.train(X_train, y_train, epochs=2500, learning_rate=0.45)
+		nn.save_weights("trained_weights_biases.npz")
 
 	print("\n --Testing on New Data-- \n")
 	predictions = nn.forward_pass(X_test)
@@ -205,4 +221,4 @@ if __name__ == "__main__":
 	print(f"True Network Accuracy: {accuracy: .2f}%")
 
 	print("Launching Web Interface... ")
-	interface.launch()
+	interface.launch(inbrowser=True, debug=True, share=True)  # Only used it for debugging
