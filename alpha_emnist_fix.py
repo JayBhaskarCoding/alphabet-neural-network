@@ -162,7 +162,7 @@ def predict_drawing(image):
 
 	prediction = nn.forward_pass(flattened)
 
-	return {chr(i+65): float(prediction[0][i]) for i in range(10)}
+	return {chr(i+65): float(prediction[0][i]) for i in range(26)}
 
 interface = gr.Interface(fn=predict_drawing, inputs=gr.Sketchpad(type="numpy", label="Draw an UPPERCASE letter (A-Z) in the center of the box!"), outputs=gr.Label(num_top_classes=3, label="The AI's Guess"), title="Letter Guessing NN", description="Draw an UPPERCASE letter (A-Z) in the center of the box!", live=True)
 
