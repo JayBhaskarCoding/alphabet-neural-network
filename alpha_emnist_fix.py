@@ -101,7 +101,7 @@ def predict_drawing(image):
 
 	img_array = image["composite"]
 
-	if np.max(inverted) == 0:
+	if np.max(img_array) == 0:
 		return {chr(i+65): 0.1 for i in range(26)}
 
 	gray = cv2.cvtColor(img_array, cv2.COLOR_RGBA2GRAY)
