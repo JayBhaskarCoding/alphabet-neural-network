@@ -101,19 +101,22 @@ def predict_drawing(image):
 
 	img_array = image["composite"]
 
-	if np.max(img_array) == 0:
-		return {chr(i+65): 0.1 for i in range(26)}
-
 	gray = cv2.cvtColor(img_array, cv2.COLOR_RGBA2GRAY)
 
-	inverted = cv2.bitwise_not(gray)
+	if gray[0,0] > 127:
+		processed = cv2.bitwise_not(gray)
+	else:
+		processed = gray
 
-	coords = cv2.findNonZero(inverted)
+	if np.max(processed) == 0:
+		return {chr(i+65): 0.1 for i in range(26)}
+
+	coords = cv2.findNonZero(processed)
 
 	if coords is not None:
 		x, y, w, h = cv2.boundingRect(coords)
 
-		cropped = inverted[y:y+h, x:x+w]
+		cropped = processed[y:y+h, x:x+w]
 
 		size = max(w, h)
 		padded = np.zeros((size, size), dtype=np.uint8)
