@@ -145,7 +145,16 @@ def predict_drawing(image):
 
 	final_img = final_img.T
 
-	scaled = final_img / 255.0
+	kernel = np.ones((2,2), np.uint8)
+	final_img = cv2.dilate(final_img, kernel, iterations=1)
+
+	max_val = np.max(final_img)
+	if max_val > 0:
+		scaled = final_img / max_val
+	else:
+		scaled = final_img / 255.0
+
+	#scaled = final_img / 255.0
 	flattened = scaled.flatten().reshape(1,-1)
 
 	prediction = nn.forward_pass(flattened)
