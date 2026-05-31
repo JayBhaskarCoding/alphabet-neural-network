@@ -144,7 +144,7 @@ def predict_drawing(image):
 		final_img = cv2.warpAffine(temp_canvas, M_trans, (28,28))
 
 	else:
-		final_img = cv2.resize(inverted, (28, 28), interpolation=cv2.INTER_AREA)
+		final_img = cv2.resize(processed, (28, 28), interpolation=cv2.INTER_AREA)
 
 	final_img = final_img.T
 
