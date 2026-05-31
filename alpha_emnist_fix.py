@@ -101,14 +101,12 @@ def predict_drawing(image):
 
 	img_array = image["composite"]
 
-	inverted = img_array[:, :, 3]
-
 	if np.max(inverted) == 0:
 		return {chr(i+65): 0.1 for i in range(26)}
 
-	#gray = cv2.cvtColor(img_array, cv2.COLOR_RGBA2GRAY)
+	gray = cv2.cvtColor(img_array, cv2.COLOR_RGBA2GRAY)
 
-	#inverted = cv2.bitwise_not(gray)
+	inverted = cv2.bitwise_not(gray)
 
 	coords = cv2.findNonZero(inverted)
 
