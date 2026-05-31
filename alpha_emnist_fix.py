@@ -95,9 +95,17 @@ class NeuralNetwork:
 			self.b2 = data['b2']
 		print(f"\nNeural Network Loaded from {filename}")
 
+def get_char(index):
+	if index < 10:
+		return str(index)
+	elif index < 36:
+		return chr(index + 55)
+	else:
+		return chr(index + 61)
+
 def predict_drawing(image):
 	if image is None or image["composite"] is None:
-	 	return {chr(i+65): 0.0 for i in range(26)} 
+	 	return {get_char(i): 0.0 for i in range(62)} 
 
 	img_array = image["composite"]
 
@@ -162,7 +170,7 @@ def predict_drawing(image):
 
 	prediction = nn.forward_pass(flattened)
 
-	return {chr(i+65): float(prediction[0][i]) for i in range(26)}, final_img
+	return {get_char(i): float(prediction[0][i]) for i in range(62)}, final_img
 
 interface = gr.Interface(fn=predict_drawing, inputs=gr.Sketchpad(type="numpy", label="Draw an UPPERCASE letter (A-Z) in the center of the box!"), outputs=[gr.Label(num_top_classes=3, label="The AI's Guess"), gr.Image(label="XRay")], title="Letter Guessing NN", description="Draw an UPPERCASE letter (A-Z) in the center of the box!", live=True)
 
@@ -172,8 +180,8 @@ def load_emnist_native(zip_filepath):
         all_files = z.namelist()
         
         # Auto-detect the exact paths by searching for the file names
-        img_path = next(f for f in all_files if 'emnist-letters-train-images-idx3-ubyte.gz' in f)
-        lbl_path = next(f for f in all_files if 'emnist-letters-train-labels-idx1-ubyte.gz' in f)
+        img_path = next(f for f in all_files if 'emnist-byclass-train-images-idx3-ubyte.gz' in f)
+        lbl_path = next(f for f in all_files if 'emnist-byclass-train-labels-idx1-ubyte.gz' in f)
         
         print(f"Found images at: {img_path}")
         print(f"Found labels at: {lbl_path}")
@@ -196,10 +204,11 @@ if __name__ == "__main__":
 
 	X, y = load_emnist_native("emnist.zip")
 
-	y -= 1
+	X = X[:25000] #25000 Images only used for quick testing... Actual dataset contains 700,000 will use after model is perfected.
+	y = y[:25000]
 
 	num_samples = len(y)
-	num_classes = 26
+	num_classes = 62
 	y_one_hot = np.zeros((num_samples, num_classes))
 
 	for i, target in enumerate(y):
@@ -207,13 +216,13 @@ if __name__ == "__main__":
 
 	X_train, X_test, y_train, y_test = train_test_split(X, y_one_hot, test_size=0.2, random_state=42)
 
-	nn = NeuralNetwork(input_nodes=784, hidden_nodes=512, output_nodes=26)
+	nn = NeuralNetwork(input_nodes=784, hidden_nodes=512, output_nodes=62)
 
 	if os.path.exists("trained_weights_biases.npz"):
 		nn.load_weights("trained_weights_biases.npz")
 	else:
 		print(f"Starting Training on {len(X_train)} images.... ")
-		nn.train(X_train, y_train, epochs=2500, learning_rate=0.45)
+		nn.train(X_train, y_train, epochs=2000, learning_rate=0.45)
 		nn.save_weights("trained_weights_biases.npz")
 
 	print("\n --Testing on New Data-- \n")
